@@ -37,10 +37,10 @@ impl Ray {
         Ray::new(scene.camera_pos, Vector3::new(sensor_x, sensor_y, -1.0).normalize())
     }
     
-    fn get_closest_object_estimate(&self, objects: &Vec<Box<dyn Object>>) -> (Option<f32>, Option<usize>) {
+    fn get_closest_object_estimate(&self, objects: &Vec<Box<dyn Object>>, ignore: &[usize]) -> (Option<f32>, Option<usize>) {
         let mut closest = (None, None);
 
-        for (i, object) in objects.iter().enumerate() {
+        for (i, object) in objects.iter().enumerate().filter(|(i, _)| !ignore.contains(i)) {
             let distance_estimate = object.distance_estimate(self.position);
             if closest.0 == None || closest.0 > Some(distance_estimate) {
                 closest = (Some(distance_estimate), Some(i));
@@ -50,38 +50,30 @@ impl Ray {
     }
 
     // Returns index of object hit first if it did hit, and the position of hit
-    // ignore_objects is used when calculating shadows, telling it to ignore the parent object
-    pub fn march_until_hit(&mut self, objects: &Vec<Box<dyn Object>>) -> (Option<(usize, Point3<f32>)>, f32) {    // returns (Some(object index, point of hit), distance traveled)
-        self.position = self.origin;    // Reset position
+    // ignore is used when calculating shadows, telling it to ignore the parent object
+    pub fn march_until_hit(&mut self, objects: &Vec<Box<dyn Object>>, ignore: &[usize]) -> (Option<(usize, Point3<f32>)>, f32) {    // returns (Some(object index, point of hit), distance traveled)
         // Move forwards at least once, so that if radiating from the surface of an object it doesn't just sit there
-        // but we need to know rough distance from the object so we can get away
-        if let (Some(smallest_dist_est), _) = self.get_closest_object_estimate(objects) {
-            // move away from object
-            self.position -= self.direction * smallest_dist_est;
-            let mut distance_traveled = -smallest_dist_est;
-    
-            loop {
-                if let (Some(smallest_distance_estimate), Some(index)) = self.get_closest_object_estimate(objects) {
-                    // if smallest_distance_estimate > 100.0 {
-                    //     println!("Closest approach: {:?}", closest.0)
-                    // }
-    
-                    if smallest_distance_estimate < RAY_HIT_THRESHOLD && distance_traveled > RAY_HIT_THRESHOLD {
-                        return (Some((index, self.position)), distance_traveled)
-                    } else if distance_traveled > RAY_MAX_TRAVEL_DISTANCE {
-                        return (None, distance_traveled)     // Didn't hit any
-                    }
-        
-                    self.position += self.direction * smallest_distance_estimate;
-                    distance_traveled += smallest_distance_estimate;
-                } else {
-                    // No objects to hit
-                    return (None, distance_traveled)
+        self.position = self.origin + self.direction * RAY_HIT_THRESHOLD;
+        let mut distance_traveled = RAY_HIT_THRESHOLD;
+
+        loop {
+            if let (Some(smallest_distance_estimate), Some(index)) = self.get_closest_object_estimate(objects, ignore) {
+                // if smallest_distance_estimate > 100.0 {
+                //     println!("Closest approach: {:?}", closest.0)
+                // }
+
+                if smallest_distance_estimate < RAY_HIT_THRESHOLD {
+                    return (Some((index, self.position)), distance_traveled)
+                } else if distance_traveled > RAY_MAX_TRAVEL_DISTANCE {
+                    return (None, distance_traveled)     // Didn't hit any
                 }
+    
+                self.position += self.direction * smallest_distance_estimate;
+                distance_traveled += smallest_distance_estimate;
+            } else {
+                // No objects to hit
+                return (None, distance_traveled)
             }
-        } else {
-            // Don't do anything if there's no objects anyway
-            (None, 0.0)
         }
     }
 }

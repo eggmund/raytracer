@@ -32,31 +32,27 @@ impl Scene {
         // Check if a point is in shadow
         fn render_shadow(last_ray_end_position: Point3<f32>, light_pos: Point3<f32>, objects: &Vec<Box<dyn Object>>, parent_object: usize) -> Color {
             // println!("Casting shadow: {:?}", last_ray_end_position);
-            let light_vec = (light_pos - last_ray_end_position).normalize(); // vector from where the ray hit the object to light
+            let light_normal = (light_pos - last_ray_end_position).normalize(); // vector from where the ray hit the object to light
             let surface_normal = objects[parent_object].get_normal(last_ray_end_position);
 
-            // let light_amount = {    // Amount of light at point of contact 0 -> 1
-            //     if 
-            //     surface_normal.dot(&light_vec).max(0.0)
-            // };
-            let light_dot = surface_normal.dot(&light_vec);
+            let light_dot = surface_normal.dot(&light_normal);
+
+            // If dot product < 0, then it is a surface away from the light, so there won't be any objects blocking
+            // the light to this point, since it is not in light
+            if light_dot < 0.0 {
+                Color::black()
+            } else { // Cast ray towards light, and if it hits something then it is in shadow
+                let mut ray = Ray::new(last_ray_end_position, light_normal);
+                let (hit_data, distance_traveled) = ray.march_until_hit(objects, &[parent_object]);
+                if hit_data.is_some() { // If it hits something -> in shadow
+                    Color::black()
+                } else {
+                    *(objects[parent_object].get_color_ref()) * light_dot.abs()
+                }
+            }
             
 
-            *(objects[parent_object].get_color_ref()) * light_amount
-
-            
-            
-            // let mut ray = Ray::new(last_ray_end_position, direction);
-
-            // let (hit_info, distance_traveled) = ray.march_until_hit(objects);
-            // if let Some((index, hit_loc)) = hit_info {
-            //     // println!("Hit loc: {:?}\tray origin: {:?}", hit_loc, ray.origin);
-            //     true
-            // } else {
-            //     false
-            // }
-
-            // returns true if it hit something
+            // *(objects[parent_object].get_color_ref()) * light_amount
         }
         
         let mut image = DynamicImage::new_rgb8(self.width, self.height);
@@ -66,7 +62,7 @@ impl Scene {
             for y in 0..self.height {
                 let mut ray = Ray::create_prime(x, y, self);
 
-                let (hit_info, distance_traveled) = ray.march_until_hit(&self.objects);
+                let (hit_info, distance_traveled) = ray.march_until_hit(&self.objects, &[]);
 
                 if let Some((object_index, boundary_position)) = hit_info { // If it hit something, render
                     let render_color = render_shadow(boundary_position, self.lights[0].pos, &self.objects, object_index);

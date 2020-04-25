@@ -25,6 +25,19 @@ pub struct Color {
 }
 
 impl Color {
+    pub fn new(r: f32, g: f32, b: f32, a: f32) -> Color {
+        Color {
+            r,
+            g,
+            b,
+            a,
+        }
+    }
+
+    pub fn black() -> Color {
+        Color::new(0.0, 0.0, 0.0, 1.0)
+    }
+
     pub fn get_image_rgba(&self) -> Rgba<u8> {
         Rgba([
             (self.r * 255.0).ceil() as u8,
