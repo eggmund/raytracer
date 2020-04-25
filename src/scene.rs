@@ -1,8 +1,10 @@
 use image::{DynamicImage, GenericImage, Rgba, Rgb, Pixel};
-use na::{Point3};
+use na::{Point3, Perspective3};
+
+use std::f32::consts::PI;
 
 use crate::objects::{Sphere, Object};
-use crate::ray::Ray;
+use crate::ray::{Ray, RAY_MAX_TRAVEL_DISTANCE};
 use crate::lighting::{Light, Color};
 
 const MAX_SHADOW_CALC_DIST: f32 = 100.0; // max distance away from camera to render shadows for
@@ -11,7 +13,7 @@ pub struct Scene {
     pub width: u32,
     pub height: u32,
     pub fov: f32,       // In DEGREES
-    pub camera_pos: Point3<f32>,
+    pub perspective: Perspective3<f32>,
     pub objects: Vec<Box<dyn Object>>,
     pub lights: Vec<Light>,
 }
@@ -21,7 +23,7 @@ impl Scene {
         Scene {
             width,
             height,
-            camera_pos,
+            perspective: Perspective3::new(width as f32/height as f32, PI/2.0, 1.0, RAY_MAX_TRAVEL_DISTANCE),
             fov,
             objects,
             lights,

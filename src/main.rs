@@ -45,9 +45,9 @@ impl MainState {
                 Box::new(HorizontalPlane {
                     y: -6.0,
                     color: Color {
-                        r: 0.3,
-                        g: 0.3,
-                        b: 0.3,
+                        r: 1.0,
+                        g: 1.0,
+                        b: 1.0,
                         a: 1.0,
                     },
                 }),

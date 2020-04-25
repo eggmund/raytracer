@@ -53,8 +53,6 @@ impl Object for HorizontalPlane {
         // sin^2 + cos^2 = 1 -> sin = sqrt(1 - cos^2)
         // dy/sin(a) = distance
         (point.y - self.y).abs()/(1.0 - cos_ang_squared).sqrt()
-
-        // (point.y - self.y).abs()
     }
 
     // Simple upwards vector

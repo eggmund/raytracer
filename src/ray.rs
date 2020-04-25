@@ -1,11 +1,12 @@
-use na::{Point3, Vector3};
+use na::{Point3, Point2, Vector3, Vector2, Perspective3};
 
 use crate::scene::Scene;
 use crate::objects::Object;
 
-const RAY_MAX_TRAVEL_DISTANCE: f32 = 100.0; // Distance before ray stops marching
+pub const RAY_MAX_TRAVEL_DISTANCE: f32 = 100.0; // Distance before ray stops marching
 const RAY_MAX_SHADOW_DISTANCE: f32 = 1.0;
 pub const RAY_HIT_THRESHOLD: f32 = 0.01; // Minimum distance from object before it is considered hit.
+pub const RAY_REFLECT_LIMIT: usize = 1;      // Number of times ray can be reflected
 
 pub struct Ray {
     pub origin: Point3<f32>,
@@ -23,18 +24,25 @@ impl Ray {
     }
 
     pub fn create_prime(x: u32, y: u32, scene: &Scene) -> Ray {
-        // Camera is aligned along -z axis (convention). +x = right, +y = up
-        // 90 -> 45 degrees multiplier for each vector depending on position (hence -1.0 -> 1.0 camera coords)
-        let fov_adjustment = (scene.fov.to_radians()/2.0).tan();
-        let aspect_ratio = scene.width as f32/scene.height as f32;
+        let screen_point = Point2::new(x as f32, y as f32);
 
-        // Divide camera "sensor" into pixels, with normal vectors coming off of the centre of each
-        // x + 0.5 = pixel centre. pixel centre/screen width = normalised position. * 2 - 1 = adjustment
-        // Then multiply by fov adjustment  and aspect ratio adjustment
-        let sensor_x = (((x as f32 + 0.5)/scene.width as f32) * 2.0 - 1.0) * aspect_ratio * fov_adjustment;
-        let sensor_y = (1.0 - ((y as f32 + 0.5)/scene.height as f32) * 2.0) * fov_adjustment;
+        // From https://www.nalgebra.org/cg_recipes/#screen-space-to-view-space
+        // Normalize and make far and near points (in front and behind camera). ndc -> normalised device constant
+        let ndc_point = Point2::new((screen_point.x as f32 / scene.width as f32) * 2.0 - 1.0, 1.0 - (screen_point.y / scene.height as f32) * 2.0);
+        let near_ndc_point = Point3::new(ndc_point.x, ndc_point.y, -1.0);
+        let far_ndc_point  = Point3::new(ndc_point.x, ndc_point.y, 1.0);
 
-        Ray::new(scene.camera_pos, Vector3::new(sensor_x, sensor_y, -1.0).normalize())
+        // Unproject them to view-space.
+        let near_view_point = scene.perspective.unproject_point(&near_ndc_point);
+        let far_view_point  = scene.perspective.unproject_point(&far_ndc_point);
+
+        // Compute the view-space line parameters.
+        let line_direction = (far_view_point - near_view_point).normalize();
+
+        Ray::new(
+            near_view_point,
+            line_direction,
+        )
     }
     
     fn get_closest_object_estimate(&self, objects: &Vec<Box<dyn Object>>, ignore: &[usize]) -> (Option<f32>, Option<usize>) {
@@ -75,5 +83,11 @@ impl Ray {
                 return (None, distance_traveled)
             }
         }
+    }
+
+    // Change direction of ray based on a surface normal given
+    pub fn reflect(&mut self, surface_normal: Vector3<f32>) {
+        // d_n = d - 2n(d . n)
+        self.direction -= 2.0 * surface_normal * self.direction.dot(&surface_normal);
     }
 }
