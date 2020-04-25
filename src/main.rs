@@ -23,7 +23,7 @@ impl MainState {
         let main_scene = Scene::new(DIMS.0, DIMS.1, Point3::origin(), 90.0,
             vec![
                 Box::new(Sphere {
-                    centre: Point3::new(0.0, 0.0, -5.0),        // 5 units away from camera
+                    centre: Point3::new(0.0, 0.0, -6.0),        // 5 units away from camera
                     radius: 1.0,
                     color: Color {
                         r: 0.0,
@@ -42,6 +42,18 @@ impl MainState {
                         a: 1.0,
                     },
                 }),
+                Box::new(Sphere {
+                    centre: Point3::new(-4.0, -2.0, -5.0),        // 5 units away from camera
+                    radius: 1.0,
+                    color: Color {
+                        r: 0.0,
+                        g: 0.0,
+                        b: 1.0,
+                        a: 1.0,
+                    },
+                }),
+
+
                 Box::new(HorizontalPlane {
                     y: -6.0,
                     color: Color {

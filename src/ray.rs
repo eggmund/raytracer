@@ -5,7 +5,7 @@ use crate::objects::Object;
 
 pub const RAY_MAX_TRAVEL_DISTANCE: f32 = 100.0; // Distance before ray stops marching
 const RAY_MAX_SHADOW_DISTANCE: f32 = 1.0;
-pub const RAY_HIT_THRESHOLD: f32 = 0.01; // Minimum distance from object before it is considered hit.
+pub const RAY_HIT_THRESHOLD: f32 = 0.001; // Minimum distance from object before it is considered hit.
 pub const RAY_REFLECT_LIMIT: usize = 1;      // Number of times ray can be reflected
 
 pub struct Ray {
