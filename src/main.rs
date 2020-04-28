@@ -20,7 +20,7 @@ struct MainState {
 
 impl MainState {
     fn new() -> MainState {
-        let main_scene = Scene::new(DIMS.0, DIMS.1, Point3::origin(), 90.0,
+        let main_scene = Scene::new(DIMS.0, DIMS.1, Point3::new(0.0, 1.0, 0.0), 90.0,
             vec![
                 Box::new(Sphere {
                     centre: Point3::new(0.0, 0.0, -6.0),        // 5 units away from camera
@@ -65,7 +65,7 @@ impl MainState {
                 }),
             ],
             vec![
-                Light::new(Point3::new(0.0, 10.0, -3.0))
+                Light::new(Point3::new(0.0, 4.0, 0.0))
             ],
         );
 

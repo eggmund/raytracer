@@ -68,3 +68,36 @@ impl Object for HorizontalPlane {
         "HorizontalPlane"
     }
 }
+
+// // Cube with no rotation
+// pub struct Cube {
+//     pub centre: Point3<f32>,
+//     pub size: f32,   // width, height and depth
+// }
+
+// impl Object for Cuboid {
+//     fn distance_estimate(&self, point: Point3<f32>) -> f32 {
+//         // Line from centre to point
+//         // let dr = point - self.centre;
+//         // let closest_axis_diff = (dr.x).min(dr.y).min(dr.z);
+        
+//     }
+
+//     fn get_normal(&self, point: Point3<f32>) -> Vector3<f32> {
+//         // Normal vector will just be the inverse of line from centre to point, aligned with axis
+//         let norm_misaligned = (point - self.centre).normalize();
+//         // Algin to largest axis.
+//         let max_axis_index = norm_misaligned.iamax();
+//         let aligned = Vector3::zero();
+//         aligned[max_axis_index] = 1.0;
+//         aligned
+//     }
+
+//     fn get_color_ref(&self) -> &Color {
+//         &self.color
+//     }
+
+//     fn get_type_name(&self) -> &'static str {
+//         "Cuboid"
+//     }
+// }

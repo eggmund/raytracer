@@ -1,7 +1,7 @@
 use image::Rgba;
 use na::{Point3, Vector3};
 
-use std::ops::Mul;
+use std::ops::{Mul, MulAssign};
 
 #[derive(Debug)]
 pub struct Light {
@@ -38,6 +38,10 @@ impl Color {
         Color::new(0.0, 0.0, 0.0, 1.0)
     }
 
+    pub fn white() -> Color {
+        Color::new(1.0, 1.0, 1.0, 1.0)
+    }
+
     pub fn get_image_rgba(&self) -> Rgba<u8> {
         Rgba([
             (self.r * 255.0).ceil() as u8,
@@ -45,6 +49,16 @@ impl Color {
             (self.b * 255.0).ceil() as u8,
             (self.a * 255.0).ceil() as u8,
         ])
+    }
+}
+
+// For blending
+impl MulAssign<&Color> for Color {
+    fn mul_assign(&mut self, rhs: &Color) {
+        self.r *= rhs.r;
+        self.g *= rhs.g;
+        self.b *= rhs.b;
+        self.a *= rhs.a;
     }
 }
 
@@ -58,5 +72,14 @@ impl Mul<f32> for Color {
             b: (self.b * rhs).min(1.0),
             a: self.a,      // Leave alpha alone
         }
+    }
+}
+
+impl MulAssign<f32> for Color {
+    fn mul_assign(&mut self, rhs: f32) {
+        self.r = (self.r * rhs).min(1.0);
+        self.g = (self.g * rhs).min(1.0);
+        self.b = (self.b * rhs).min(1.0);
+        self.a = self.a;
     }
 }
