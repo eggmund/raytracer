@@ -70,13 +70,17 @@ impl Scene {
                         if i == 0 && check_is_in_shadow(&boundary_position, &self.objects, object_index, light_dot, &light_normal) { // Check if it is in shadow before continuing
                             color = Color::black();
                             break;
-                        }      
+                        }
 
                         // Blend color
                         color *= self.objects[object_index].get_color_ref();
                         color *= light_dot;
-
-                        ray.reflect(self.objects[object_index].get_normal(boundary_position));
+                        if self.objects[object_index].get_reflectance() == 0.0 { // stop reflecting
+                            break;
+                        } else {
+                            color *= self.objects[object_index].get_reflectance();
+                            ray.reflect(self.objects[object_index].get_normal(boundary_position));
+                        }
                     } else {    // Nothing to reflect off of
                         break;
                     }

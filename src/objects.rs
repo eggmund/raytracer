@@ -9,6 +9,9 @@ pub trait Object {
     fn get_normal(&self, point: Point3<f32>) -> Vector3<f32>;
     fn get_color_ref(&self) -> &Color;
     fn get_type_name(&self) -> &'static str;
+    fn get_reflectance(&self) -> f32 {
+        1.0
+    }
 }
 
 #[derive(Debug)]
@@ -66,6 +69,10 @@ impl Object for HorizontalPlane {
 
     fn get_type_name(&self) -> &'static str {
         "HorizontalPlane"
+    }
+
+    fn get_reflectance(&self) -> f32 {  // Don't want plane to be relfective
+        0.0
     }
 }
 
