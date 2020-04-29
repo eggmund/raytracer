@@ -1,16 +1,18 @@
 use na::{Point3, Point2, Vector3, Vector2, Perspective3};
 
 use crate::scene::Scene;
+use crate::lighting::Color;
 use crate::objects::Object;
 
-pub const RAY_MAX_TRAVEL_DISTANCE: f32 = 100.0; // Distance before ray stops marching
+pub const RAY_MAX_TRAVEL_DISTANCE: f32 = 1000.0; // Distance before ray stops marching
 pub const RAY_HIT_THRESHOLD: f32 = 0.001; // Minimum distance from object before it is considered hit.
-pub const RAY_REFLECT_LIMIT: usize = 1;      // Number of times ray can be reflected
+pub const RAY_REFLECT_LIMIT: usize = 2;      // Number of times ray can be reflected
 
 pub struct Ray {
     pub origin: Point3<f32>,
     pub direction: Vector3<f32>,
     position: Point3<f32>,
+    pub color: Color,
 }
 
 impl Ray {
@@ -19,6 +21,16 @@ impl Ray {
             origin: origin.clone(),
             direction,
             position: origin,
+            color: Color::white(),
+        }
+    }
+
+    pub fn new_with_color(origin: Point3<f32>, direction: Vector3<f32>, color: Color) -> Ray {
+        Ray {
+            origin: origin.clone(),
+            direction,
+            position: origin,
+            color: Color::white(),
         }
     }
 
@@ -37,7 +49,6 @@ impl Ray {
 
         // Compute the view-space line parameters.
         let line_direction = (far_view_point - near_view_point).normalize();
-        let emission_pos = Point3::new(near_view_point.x, near_view_point.y, near_view_point.z);
 
         Ray::new(
             near_view_point,
@@ -49,7 +60,7 @@ impl Ray {
         let mut closest = (None, None);
 
         for (i, object) in objects.iter().enumerate().filter(|(i, _)| !ignore.contains(i)) {
-            let distance_estimate = object.distance_estimate(self.position);
+            let distance_estimate = object.distance_estimate(&self.position);
             if closest.0 == None || closest.0 > Some(distance_estimate) {
                 closest = (Some(distance_estimate), Some(i));
             }
@@ -59,19 +70,22 @@ impl Ray {
 
     // Returns index of object hit first if it did hit, and the position of hit
     // ignore is used when calculating shadows, telling it to ignore the parent object
-    pub fn march_until_hit(&mut self, objects: &Vec<Box<dyn Object>>, ignore: &[usize]) -> (Option<(usize, Point3<f32>)>, f32) {    // returns (Some(object index, point of hit), distance traveled)
+    pub fn march_until_hit(&mut self, objects: &Vec<Box<dyn Object>>, ignore: &[usize]) -> (Option<HitData>, f32) {    // returns (Some(object index, point of hit), distance traveled)
         // Move forwards at least once, so that if radiating from the surface of an object it doesn't just sit there
         self.position = self.origin + self.direction * RAY_HIT_THRESHOLD;
         let mut distance_traveled = RAY_HIT_THRESHOLD;
 
         loop {
             if let (Some(smallest_distance_estimate), Some(index)) = self.get_closest_object_estimate(objects, ignore) {
-                // if smallest_distance_estimate > 100.0 {
-                //     println!("Closest approach: {:?}", closest.0)
-                // }
-
                 if smallest_distance_estimate < RAY_HIT_THRESHOLD {
-                    return (Some((index, self.position)), distance_traveled)
+                    return (Some(
+                        HitData::new(
+                            self.position,
+                            index,
+                            objects[index].get_type_name()
+                        )),
+                        distance_traveled
+                    )
                 } else if distance_traveled > RAY_MAX_TRAVEL_DISTANCE {
                     return (None, distance_traveled)     // Didn't hit any
                 }
@@ -89,5 +103,22 @@ impl Ray {
     pub fn reflect(&mut self, surface_normal: Vector3<f32>) {
         // d_n = d - 2n(d . n)
         self.direction -= 2.0 * surface_normal * self.direction.dot(&surface_normal);
+    }
+}
+
+#[derive(Debug)]
+pub struct HitData {
+    pub point_of_contact: Point3<f32>,
+    pub object_index: usize,
+    pub object_type_name: &'static str,
+}
+
+impl HitData {
+    pub fn new(point_of_contact: Point3<f32>, object_index: usize, object_type_name: &'static str) -> Self {
+        Self {
+            point_of_contact,
+            object_index,
+            object_type_name,
+        }
     }
 }

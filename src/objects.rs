@@ -4,13 +4,13 @@ use crate::ray::Ray;
 use crate::lighting::Color;
 
 pub trait Object {
-    fn distance_estimate(&self, point: Point3<f32>) -> f32;
+    fn distance_estimate(&self, point: &Point3<f32>) -> f32;
     // returns closest surface normal
-    fn get_normal(&self, point: Point3<f32>) -> Vector3<f32>;
+    fn get_normal(&self, point: &Point3<f32>) -> Vector3<f32>;
     fn get_color_ref(&self) -> &Color;
     fn get_type_name(&self) -> &'static str;
     fn get_reflectance(&self) -> f32 {
-        1.0
+        0.0
     }
 }
 
@@ -22,14 +22,14 @@ pub struct Sphere {
 }
 
 impl Object for Sphere {
-    fn distance_estimate(&self, point: Point3<f32>) -> f32 {
+    fn distance_estimate(&self, point: &Point3<f32>) -> f32 {
         // vector to centre of sphere
         let r_centre = self.centre - point;
         // distance is then magnitude of this vector, take away the radius of the sphere
         r_centre.norm() - self.radius
     }
 
-    fn get_normal(&self, point: Point3<f32>) -> Vector3<f32> {
+    fn get_normal(&self, point: &Point3<f32>) -> Vector3<f32> {
         // vector from sphere to point normalised = surface normal
         (point - self.centre).normalize()
     }
@@ -41,6 +41,10 @@ impl Object for Sphere {
     fn get_type_name(&self) -> &'static str {
         "Sphere"
     }
+
+    fn get_reflectance(&self) -> f32 {
+        1.0
+    }
 }
 
 #[derive(Debug)]
@@ -50,7 +54,7 @@ pub struct HorizontalPlane {
 }
 
 impl Object for HorizontalPlane {
-    fn distance_estimate(&self, point: Point3<f32>) -> f32 {
+    fn distance_estimate(&self, point: &Point3<f32>) -> f32 {
         // Get cosine squared of angle to plane via dot product: j * r/|r| = cos(a) = 1 * r.y/r
         let cos_ang_squared = (point.y).powi(2)/Vector3::new(point.x, point.y, point.z).norm_squared();
         // sin^2 + cos^2 = 1 -> sin = sqrt(1 - cos^2)
@@ -59,7 +63,7 @@ impl Object for HorizontalPlane {
     }
 
     // Simple upwards vector
-    fn get_normal(&self, point: Point3<f32>) -> Vector3<f32> {
+    fn get_normal(&self, point: &Point3<f32>) -> Vector3<f32> {
         Vector3::new(0.0, 1.0, 0.0)
     }
 
