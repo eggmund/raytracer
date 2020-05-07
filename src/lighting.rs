@@ -63,6 +63,10 @@ impl Color {
         let fade_amount = distance_travelled/RAY_MAX_TRAVEL_DISTANCE;
         *ray_col
     }
+
+    pub fn is_black(&self) -> bool {
+        (self.r == 0.0) && (self.g == 0.0) && (self.b == 0.0)
+    }
 }
 
 

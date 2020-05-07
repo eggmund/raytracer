@@ -41,15 +41,14 @@ impl Scene {
                 let mut ray = Ray::create_prime(x, y, self);
 
                 for i in 0..RAY_REFLECT_LIMIT+1 {
-                    let (hit_data, distance_traveled) = ray.march_until_hit(&self.objects, &[]);
+                    let (hit_data, _) = ray.march_until_hit(&self.objects, &[]);
                     if let Some(hit_data) = hit_data { // If it hit something, add color
                         let object_hit = &self.objects[hit_data.object_index];
-                        let reflectance = object_hit.get_reflectance();
 
                         let mut hit_color = *(object_hit.get_color_ref());
                         let shade = self.shade(&hit_data);
-
                         hit_color *= shade;
+
                         ray.color *= &hit_color;
 
                         if self.objects[hit_data.object_index].get_reflectance() == 0.0 {

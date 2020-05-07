@@ -80,35 +80,40 @@ impl Object for HorizontalPlane {
     }
 }
 
-// // Cube with no rotation
-// pub struct Cube {
-//     pub centre: Point3<f32>,
-//     pub size: f32,   // width, height and depth
-// }
+// Cube with no rotation
+pub struct AxisAlignedCube {
+    pub centre: Point3<f32>,
+    pub size: f32,   // width, height and depth
+    pub color: Color,
+}
 
-// impl Object for Cuboid {
-//     fn distance_estimate(&self, point: Point3<f32>) -> f32 {
-//         // Line from centre to point
-//         // let dr = point - self.centre;
-//         // let closest_axis_diff = (dr.x).min(dr.y).min(dr.z);
-        
-//     }
+impl Object for AxisAlignedCube {
+    fn distance_estimate(&self, point: &Point3<f32>) -> f32 {
+        let diff = point - self.centre;
 
-//     fn get_normal(&self, point: Point3<f32>) -> Vector3<f32> {
-//         // Normal vector will just be the inverse of line from centre to point, aligned with axis
-//         let norm_misaligned = (point - self.centre).normalize();
-//         // Algin to largest axis.
-//         let max_axis_index = norm_misaligned.iamax();
-//         let aligned = Vector3::zero();
-//         aligned[max_axis_index] = 1.0;
-//         aligned
-//     }
+        // Looked at stack overflow for this one https://math.stackexchange.com/questions/2133217/minimal-distance-to-a-cube-in-2d-and-3d-from-a-point-lying-outside
+        (
+            0.0f32.max(diff.x.abs() - self.size).powi(2) +
+            0.0f32.max(diff.y.abs() - self.size).powi(2) +
+            0.0f32.max(diff.z.abs() - self.size).powi(2)
+        ).sqrt()
+    }
 
-//     fn get_color_ref(&self) -> &Color {
-//         &self.color
-//     }
+    fn get_normal(&self, point: &Point3<f32>) -> Vector3<f32> {
+        // Normal vector will just be the inverse of line from centre to point, aligned with axis
+        let norm_misaligned = (point - self.centre).normalize();
+        // Algin to largest axis.
+        let max_axis_index = norm_misaligned.iamax();
+        let mut aligned = Vector3::zeros();
+        aligned[max_axis_index] = 1.0;
+        aligned
+    }
 
-//     fn get_type_name(&self) -> &'static str {
-//         "Cuboid"
-//     }
-// }
+    fn get_color_ref(&self) -> &Color {
+        &self.color
+    }
+
+    fn get_type_name(&self) -> &'static str {
+        "Cuboid"
+    }
+}

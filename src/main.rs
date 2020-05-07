@@ -9,10 +9,10 @@ use na::{Point3, Vector3, Matrix4};
 use image::DynamicImage;
 
 use scene::Scene;
-use objects::{Sphere, HorizontalPlane};
+use objects::*;
 use lighting::{Color, Light};
 
-const DIMS: (u32, u32) = (800, 600);
+const DIMS: (u32, u32) = (1920, 1080);
 
 struct MainState {
     main_scene: Scene,
@@ -22,30 +22,39 @@ impl MainState {
     fn new() -> MainState {
         let mut main_scene = Scene::new(DIMS.0, DIMS.1, 90.0,
             vec![
-                Box::new(Sphere {
-                    centre: Point3::new(0.0, 1.0, -0.1),
-                    radius: 1.0,
-                    color: Color {
-                        r: 0.0,
-                        g: 1.0,
-                        b: 0.0,
-                    },
-                }),
-                Box::new(Sphere {
-                    centre: Point3::new(-2.0, -2.0, -7.0),
-                    radius: 1.0,
+                // Box::new(Sphere {
+                //     centre: Point3::new(0.0, 1.0, -0.1),
+                //     radius: 1.0,
+                //     color: Color {
+                //         r: 0.0,
+                //         g: 1.0,
+                //         b: 0.0,
+                //     },
+                // }),
+                // Box::new(Sphere {
+                //     centre: Point3::new(-2.0, -2.0, -7.0),
+                //     radius: 1.0,
+                //     color: Color {
+                //         r: 1.0,
+                //         g: 1.0,
+                //         b: 1.0,
+                //     },
+                // }),
+                // Box::new(Sphere {
+                //     centre: Point3::new(2.0, -2.0, 4.0),
+                //     radius: 1.0,
+                //     color: Color {
+                //         r: 0.0,
+                //         g: 1.0,
+                //         b: 0.0,
+                //     },
+                // }),
+                Box::new(AxisAlignedCube {
+                    centre: Point3::new(2.0, -1.5, -5.0),
+                    size: 1.0,
                     color: Color {
                         r: 1.0,
-                        g: 1.0,
-                        b: 1.0,
-                    },
-                }),
-                Box::new(Sphere {
-                    centre: Point3::new(2.0, -2.0, 4.0),
-                    radius: 1.0,
-                    color: Color {
-                        r: 0.0,
-                        g: 1.0,
+                        g: 0.0,
                         b: 0.0,
                     },
                 }),
