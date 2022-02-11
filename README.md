@@ -1,3 +1,5 @@
 # raymarcher
 
-My attempt at a raymarching algorithm (without looking at too many sources).
+My attempt at a raymarching algorithm. Rough first attempt.
+
+![image](out.png)
